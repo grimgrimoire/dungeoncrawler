@@ -74,11 +74,11 @@ public class InventoryItemUI : MonoBehaviour, IPointerClickHandler, IPointerEnte
         {
             if (eventData.button == PointerEventData.InputButton.Left)
             {
-                selectedImpl.OnItemClicked(transform.GetSiblingIndex(), 0);
+                selectedImpl.OnItemClicked(transform.GetSiblingIndex(), MouseInput.MOUSE_LEFT);
             }
             else if(eventData.button == PointerEventData.InputButton.Right)
             {
-                selectedImpl.OnItemClicked(transform.GetSiblingIndex(), 1);
+                selectedImpl.OnItemClicked(transform.GetSiblingIndex(), MouseInput.MOUSE_RIGHT);
             }
             if (showImpl != null)
                 showImpl.OnCloseEquipmentStatus();

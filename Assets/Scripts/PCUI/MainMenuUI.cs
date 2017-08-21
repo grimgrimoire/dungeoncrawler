@@ -1,6 +1,7 @@
 ﻿using System;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 
 public interface TooltipInterface
@@ -14,7 +15,7 @@ public interface ConfirmationDialogInterface
     void RequestConfirmationDialog(string text, UnityAction onYes, UnityAction onNo, UnityAction onCancel);
 }
 
-public class MainMenuUI : MonoBehaviour, CharCreationInterface, RecruitmentInterface, EquipmentUIInterface, EquipmentUILevelUpInterface, InventoryItemShowInterface, TooltipInterface, ConsumableInterface, ConfirmationDialogInterface
+public class MainMenuUI : MonoBehaviour, CharCreationInterface, RecruitmentInterface, EquipmentUIInterface, EquipmentUILevelUpInterface, InventoryItemShowInterface, TooltipInterface, ConsumableInterface, ConfirmationDialogInterface, IPopupMenu, IPointerClickHandler
 {
     public DungeonSelectUI dungeonSelect;
     public CharCreationUI charCreate;
@@ -25,6 +26,7 @@ public class MainMenuUI : MonoBehaviour, CharCreationInterface, RecruitmentInter
     public ConsumableItemUI consumableUI;
     public RectTransform equipmentShowPopUp, tooltip;
     public ConfirmationDialog dialog;
+    public PopupMenu popupMenu;
 
     public void OnCreateNewChar()
     {
@@ -38,12 +40,18 @@ public class MainMenuUI : MonoBehaviour, CharCreationInterface, RecruitmentInter
         charCreate.SetListener(this);
         recruitmentManager.SetListener(this);
         partyManager.SetEquipmentImpl(this);
-        inventoryUI.SetItemShowImpl(this);
-        equipmentUI.SetEquipmentShowImpl(this);
+        inventoryUI.SetInterfaces(this);
+        equipmentUI.SetInterfaces(this);
         equipmentUI.SetLevelUpInterface(this);
         consumableUI.SetListener(this);
         ItemManager.GetInstance();
         LoadGameSession();
+        InitializeUIClasses();
+    }
+
+    void InitializeUIClasses()
+    {
+        popupMenu.gameObject.SetActive(true);
     }
 
     void LoadGameSession()
@@ -182,6 +190,7 @@ public class MainMenuUI : MonoBehaviour, CharCreationInterface, RecruitmentInter
 
     void HideAllWindow()
     {
+        popupMenu.gameObject.SetActive(false);
         recruitmentManager.gameObject.SetActive(false);
         charCreate.gameObject.SetActive(false);
         partyManager.gameObject.SetActive(false);
@@ -249,5 +258,41 @@ public class MainMenuUI : MonoBehaviour, CharCreationInterface, RecruitmentInter
         dialog.SetNoClicked(onNo);
         dialog.SetText(text);
         dialog.gameObject.SetActive(true);
+    }
+
+    public void CreatePopUpMenu(string[] texts, UnityAction[] actions)
+    {
+        popupMenu.gameObject.SetActive(true);
+        popupMenu.AddPopupMenuButtons(texts, actions);
+        UpdatePopupMenuPos();
+    }
+
+    void UpdatePopupMenuPos()
+    {
+        float height = tooltip.rect.height;
+        float width = tooltip.rect.width;
+        Vector3 newPos = Input.mousePosition;
+        if (newPos.y - height < 0)
+        {
+            newPos.y += height - newPos.y;
+        }
+        if (newPos.x + width > Screen.width)
+        {
+            newPos.x -= (newPos.x + width) - Screen.width;
+        }
+        popupMenu.transform.position = newPos;
+    }
+
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        if(popupMenu.gameObject.activeInHierarchy)
+            popupMenu.gameObject.SetActive(false);
+        if (dialog.gameObject.activeInHierarchy)
+            dialog.gameObject.SetActive(false);
+    }
+
+    public void CancelPopUpMenu()
+    {
+        popupMenu.gameObject.SetActive(false);
     }
 }

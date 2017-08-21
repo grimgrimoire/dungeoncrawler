@@ -85,6 +85,6 @@ public class RecruitmentManager : MonoBehaviour
 
     void GenerateSkillBook()
     {
-        PlayerSession.GetProfile().AddItem("asdasda", 1);
+        PlayerSession.GetProfile().AddItem("Skill1", 1);
     }
 }

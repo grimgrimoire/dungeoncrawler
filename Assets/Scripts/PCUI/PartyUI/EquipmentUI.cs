@@ -15,9 +15,9 @@ public interface EquipmentUILevelUpInterface
     void RequestLevelUpMenu(CharacterModel model);
 }
 
-public class EquipmentUI : MonoBehaviour, EquipInterface, SetSkillInterface
+public class EquipmentUI : MonoBehaviour, EquipInterface, SetSkillInterface, IEquipedItem
 {
-
+    const string NONE = "None";
     public Text[] actives;
     public Text[] pasives;
     public Text[] traits;
@@ -31,6 +31,9 @@ public class EquipmentUI : MonoBehaviour, EquipInterface, SetSkillInterface
     int selectedSlot;
     bool isPassive;
     EquipmentUILevelUpInterface levelUpInterface;
+    IPopupMenu popupMenu;
+
+    Text[] eqArray;
 
     // Use this for initialization
     void Start()
@@ -38,35 +41,24 @@ public class EquipmentUI : MonoBehaviour, EquipInterface, SetSkillInterface
         invUI.SetEquipImpl(this);
         invUI.gameObject.SetActive(false);
         clevel.GetComponent<Button>().onClick.AddListener(LevelUpCharacter);
-        eqMain.GetComponent<Button>().onClick.AddListener(delegate { OnEquipmentClicked(eqMain, EqSlot.MainHand, 0); });
-        eqOff.GetComponent<Button>().onClick.AddListener(delegate { OnEquipmentClicked(eqOff, EqSlot.OffHand, 1); });
-        eqHead.GetComponent<Button>().onClick.AddListener(delegate { OnEquipmentClicked(eqHead, EqSlot.Head, 2); });
-        eqBody.GetComponent<Button>().onClick.AddListener(delegate { OnEquipmentClicked(eqBody, EqSlot.Body, 3); });
-        eqAcc1.GetComponent<Button>().onClick.AddListener(delegate { OnEquipmentClicked(eqAcc1, EqSlot.Accessory, 4); });
-        eqAcc2.GetComponent<Button>().onClick.AddListener(delegate { OnEquipmentClicked(eqAcc2, EqSlot.Accessory, 5); });
         actives[0].GetComponent<Button>().onClick.AddListener(delegate { OnActiveSkillChange(0); });
         actives[1].GetComponent<Button>().onClick.AddListener(delegate { OnActiveSkillChange(1); });
         actives[2].GetComponent<Button>().onClick.AddListener(delegate { OnActiveSkillChange(2); });
         actives[3].GetComponent<Button>().onClick.AddListener(delegate { OnActiveSkillChange(3); });
         actives[4].GetComponent<Button>().onClick.AddListener(delegate { OnActiveSkillChange(4); });
         closeBtn.onClick.AddListener(CloseSelection);
+        eqArray = new Text[6] { eqMain, eqOff, eqHead, eqBody, eqAcc1, eqAcc2 };
     }
 
-    public void SetEquipmentShowImpl(InventoryItemShowInterface iis)
+    public void SetInterfaces(MainMenuUI iis)
     {
-        invUI.SetItemShowImpl(iis);
-        eqMain.GetComponent<EquipedItemUI>().SetInterface(iis);
-        eqOff.GetComponent<EquipedItemUI>().SetInterface(iis);
-        eqHead.GetComponent<EquipedItemUI>().SetInterface(iis);
-        eqBody.GetComponent<EquipedItemUI>().SetInterface(iis);
-        eqAcc1.GetComponent<EquipedItemUI>().SetInterface(iis);
-        eqAcc2.GetComponent<EquipedItemUI>().SetInterface(iis);
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-
+        invUI.SetInterfaces(iis);
+        eqMain.GetComponent<EquipedItemUI>().SetInterface(iis, this).SetEquipIndex(0);
+        eqOff.GetComponent<EquipedItemUI>().SetInterface(iis, this).SetEquipIndex(1);
+        eqHead.GetComponent<EquipedItemUI>().SetInterface(iis, this).SetEquipIndex(2);
+        eqBody.GetComponent<EquipedItemUI>().SetInterface(iis, this).SetEquipIndex(3);
+        eqAcc1.GetComponent<EquipedItemUI>().SetInterface(iis, this).SetEquipIndex(4);
+        eqAcc2.GetComponent<EquipedItemUI>().SetInterface(iis, this).SetEquipIndex(5);
     }
 
     void OnDisable()
@@ -81,6 +73,7 @@ public class EquipmentUI : MonoBehaviour, EquipInterface, SetSkillInterface
     public void SetLevelUpInterface(MainMenuUI mainmenu)
     {
         levelUpInterface = mainmenu;
+        popupMenu = mainmenu;
         skillUI.SetInterface(this, mainmenu);
         for (int i = 0; i < 5; i++)
             actives[i].GetComponent<EquipedSkillUI>().SetInterface(mainmenu);
@@ -94,6 +87,7 @@ public class EquipmentUI : MonoBehaviour, EquipInterface, SetSkillInterface
 
     public void CloseSelection()
     {
+        popupMenu.CancelPopUpMenu();
         invUI.ClearItemList();
         invUI.gameObject.SetActive(false);
         skillUI.ClearList();
@@ -124,7 +118,7 @@ public class EquipmentUI : MonoBehaviour, EquipInterface, SetSkillInterface
     void LoadEquipmentName(Text text, int index)
     {
         if (index < 0)
-            text.text = "None";
+            text.text = NONE;
         else
             text.text = PlayerSession.GetEquipment(index).name;
         text.GetComponent<EquipedItemUI>().SetModel(PlayerSession.GetEquipment(index));
@@ -169,7 +163,7 @@ public class EquipmentUI : MonoBehaviour, EquipInterface, SetSkillInterface
     {
         if (activeName == null || activeName.Length == 0)
         {
-            act.text = "None";
+            act.text = NONE;
             act.GetComponent<EquipedSkillUI>().SetDescription("No active skill");
         }
         else
@@ -179,32 +173,9 @@ public class EquipmentUI : MonoBehaviour, EquipInterface, SetSkillInterface
         }
     }
 
-    void OnEquipmentClicked(Text text, EqSlot slot, int indexSlot)
-    {
-        if (invUI.isActiveAndEnabled)
-        {
-            if (indexSlot == selectedSlot)
-            {
-                CloseSelection();
-                RemoveEquipment(indexSlot);
-                text.text = "None";
-                LoadAllAttributes();
-            }
-            else
-            {
-                selectedSlot = indexSlot;
-                invUI.ChangeFilter(indexSlot);
-            }
-        }
-        else
-        {
-            selectedSlot = indexSlot;
-            ShowEquipmentSelection(indexSlot);
-        }
-    }
-
     void ShowEquipmentSelection(int indexSlot)
     {
+        popupMenu.CancelPopUpMenu();
         closeBtn.gameObject.SetActive(true);
         skillUI.gameObject.SetActive(false);
         invUI.gameObject.SetActive(true);
@@ -301,6 +272,7 @@ public class EquipmentUI : MonoBehaviour, EquipInterface, SetSkillInterface
 
     void ShowSkillSelection()
     {
+        popupMenu.CancelPopUpMenu();
         closeBtn.gameObject.SetActive(true);
         invUI.gameObject.SetActive(false);
         skillUI.gameObject.SetActive(true);
@@ -323,11 +295,40 @@ public class EquipmentUI : MonoBehaviour, EquipInterface, SetSkillInterface
 
     void EquipSelectedActives(string id)
     {
-        //if (id.Length != 0)
-        //    actives[selectedSlot].text = ActiveSkillManager.GetInstance().GetActive(id).name;
-        //else
-        //    actives[selectedSlot].text = "None";
         model.actives[selectedSlot] = id;
         SetActives(actives[selectedSlot], id);
+    }
+
+    public void OnRequestPopupMenu(int index)
+    {
+        if (eqArray[index].text.Equals(NONE))
+            return;
+        selectedSlot = index;
+        popupMenu.CreatePopUpMenu(new string[] { "Unequip" }, new UnityEngine.Events.UnityAction[] { Unequip });
+    }
+
+    void Unequip()
+    {
+        CloseSelection();
+        RemoveEquipment(selectedSlot);
+        eqArray[selectedSlot].text = NONE;
+        LoadAllAttributes();
+    }
+
+    public void OnEquipmentClicked(int index)
+    {
+        if (invUI.isActiveAndEnabled)
+        {
+            if (index != selectedSlot)
+            {
+                selectedSlot = index;
+                invUI.ChangeFilter(index);
+            }
+        }
+        else
+        {
+            selectedSlot = index;
+            ShowEquipmentSelection(index);
+        }
     }
 }

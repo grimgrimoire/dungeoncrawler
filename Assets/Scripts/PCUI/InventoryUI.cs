@@ -4,7 +4,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public interface EquipInterface {
+public interface EquipInterface
+{
 
     void OnItemEquiped(int index);
 
@@ -26,11 +27,13 @@ public class InventoryUI : MonoBehaviour, InventoryItemInterface
     List<int> sorting = new List<int>();
     EquipInterface eqImpl;
     InventoryItemShowInterface showImpl;
+    IPopupMenu popupMenu;
+    ConfirmationDialogInterface dialog;
 
     // Use this for initialization
     void Start()
     {
-        if(slotFilter != null)
+        if (slotFilter != null)
             slotFilter.onValueChanged.AddListener(ChangeFilter);
         sortingFilter.onValueChanged.AddListener(ChangeSorting);
     }
@@ -43,12 +46,14 @@ public class InventoryUI : MonoBehaviour, InventoryItemInterface
 
     void OnDisable()
     {
-        
+
     }
 
-    public void SetItemShowImpl(InventoryItemShowInterface iis)
+    public void SetInterfaces(MainMenuUI mainMenu)
     {
-        showImpl = iis;
+        showImpl = mainMenu;
+        popupMenu = mainMenu;
+        dialog = mainMenu;
     }
 
     public void SetEquipImpl(EquipInterface ei)
@@ -90,7 +95,7 @@ public class InventoryUI : MonoBehaviour, InventoryItemInterface
     void FilterEquipmentSlot(EqSlot filter)
     {
         int i = 0;
-        foreach(Equipment model in PlayerSession.GetInventory().list)
+        foreach (Equipment model in PlayerSession.GetInventory().list)
         {
             if (model.slot == filter && !model.isUsed)
                 sorting.Add(i);
@@ -111,7 +116,7 @@ public class InventoryUI : MonoBehaviour, InventoryItemInterface
             //Destroy(child.gameObject);
             child.gameObject.SetActive(false);
         }
-        for(int i=0; i<sorting.Count; i++)
+        for (int i = 0; i < sorting.Count; i++)
         {
             if (i < viewPort.transform.childCount)
                 UpdateEquipmentItem(PlayerSession.GetInventory().list[sorting[i]], viewPort.transform.GetChild(i).GetComponent<InventoryItemUI>());
@@ -130,15 +135,43 @@ public class InventoryUI : MonoBehaviour, InventoryItemInterface
     {
         GameObject eqItem = Instantiate(prefab, viewPort.transform, false);
         eqItem.GetComponent<InventoryItemUI>().SetModel(equipment, sortingFilter.value);
-        if (eqImpl != null)
-            eqItem.GetComponent<InventoryItemUI>().SetInterface(this);
+        eqItem.GetComponent<InventoryItemUI>().SetInterface(this);
         eqItem.GetComponent<InventoryItemUI>().SetShowInterface(showImpl);
     }
-  
+
     public void OnItemClicked(int index, int mouseIndex)
     {
-        if(mouseIndex == MouseInput.MOUSE_LEFT)
-            eqImpl.OnItemEquiped(sorting[index]);
+        if (mouseIndex == MouseInput.MOUSE_LEFT)
+        {
+            if(eqImpl != null)
+                eqImpl.OnItemEquiped(sorting[index]);
+        }
+        else if (mouseIndex == MouseInput.MOUSE_RIGHT && eqImpl == null)
+        {
+            CreatePopupMenu(index);
+        }
+    }
+
+    void CreatePopupMenu(int index)
+    {
+        popupMenu.CreatePopUpMenu(new string[] { "Sell" },
+            new UnityEngine.Events.UnityAction[] { delegate { SellItemDialog(index); } });
+    }
+
+    void SellItemDialog(int index)
+    {
+        dialog.RequestConfirmationDialog("Sell " + GetEquipment(index).name + " ?", delegate { SellItem(index); }, null, null);
+    }
+
+    void SellItem(int index)
+    {
+        PlayerSession.GetInventory().list.RemoveAt(sorting[index]);
+        LoadAllEquipment();
+    }
+
+    Equipment GetEquipment(int i)
+    {
+        return PlayerSession.GetInventory().list[sorting[i]];
     }
 
     public void ClearItemList()
