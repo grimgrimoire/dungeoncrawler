@@ -1,11 +1,16 @@
 ﻿using UnityEngine;
+using UnityEngine.UI;
+using System.Collections.Generic;
+using System;
 
-public class DungeonSelectUI : MonoBehaviour, IDungeonSelect
+public class DungeonSelectUI : MonoBehaviour, IDungeonSelect, ILevelSelect
 {
     public GameObject dungeonList;
     public GameObject levelList;
     public GameObject dungeonPrefab;
     public GameObject levelPrefab;
+    public Button backButton;
+    int selectedDungeonIndex;
 
     // Use this for initialization
     void Start()
@@ -21,24 +26,39 @@ public class DungeonSelectUI : MonoBehaviour, IDungeonSelect
         {
             dungeon.GetComponent<DungeonSelectItemUI>().SetDungeonSelectListener(this);
         }
+
+        foreach(Transform level in levelList.transform)
+        {
+            level.GetComponent<LevelSelectItemUI>().SetLevelSelectListener(this);
+        }
+        backButton.onClick.AddListener(BackAction);
     }
 
     public void ShowDungeonList()
     {
         dungeonList.SetActive(true);
         levelList.SetActive(false);
+        backButton.gameObject.SetActive(false);
+        HideAllLevelItem();
     }
 
-    public void ShowLevelList(UIDungeonInfo info)
+    public void ShowLevelList(UIDungeonInfo info, int index)
     {
         dungeonList.SetActive(false);
         levelList.SetActive(true);
-        UpdateLevelList(info);
+        backButton.gameObject.SetActive(true);
+        UpdateLevelList(info, index);
+    }
+
+    public void BackAction()
+    {
+        ShowDungeonList();
     }
 
     public void OnDungeonSelected(int index)
     {
-        ShowLevelList(DungeonSelectManager.GetInstance().GetModel().stage[index]);
+        ShowLevelList(DungeonSelectManager.GetInstance().GetModel().stage[index], index);
+        selectedDungeonIndex = index;
     }
 
     public void UpdateDungeonList()
@@ -73,9 +93,16 @@ public class DungeonSelectUI : MonoBehaviour, IDungeonSelect
         dungeon.SetActive(true);
     }
 
-    void UpdateLevelList(UIDungeonInfo info)
+    void UpdateLevelList(UIDungeonInfo info, int index)
     {
-
+        int totalLevel = DungeonSelectManager.GetInstance().GetStageLevels(index).Count;
+        for (int i=0;i<totalLevel;i++)
+        {
+            if (i < levelList.transform.childCount)
+                UpdateLevelItem(i, DungeonSelectManager.GetInstance().GetStageLevels(index));
+            else
+                CreateLevelItem(i,DungeonSelectManager.GetInstance().GetStageLevels(index));
+        }
     }
 
     void HideAllLevelItem()
@@ -84,18 +111,33 @@ public class DungeonSelectUI : MonoBehaviour, IDungeonSelect
             child.gameObject.SetActive(false);
     }
 
-    void CreateLevelItem(UILevelInfo info)
+    void CreateLevelItem(int index, List<UILevelInfo> info)
     {
-
+        GameObject level = Instantiate(levelPrefab, levelList.transform, false);
+        level.GetComponent<LevelSelectItemUI>().SetLevelInfo(info, index);
+        level.GetComponent<LevelSelectItemUI>().SetLevelSelectListener(this);
+        
     }
 
-    void UpdateLevelItem(int index, UILevelInfo info)
+    void UpdateLevelItem(int index, List<UILevelInfo> info)
     {
+        GameObject level = levelList.transform.GetChild(index).gameObject;
+        level.GetComponent<LevelSelectItemUI>().SetLevelInfo(info, index);
+        level.SetActive(true);
+    }
 
+    public void OnLevelSelected(int index)
+    {
+        Debug.Log(DungeonSelectManager.GetInstance().GetStageLevels(selectedDungeonIndex)[index].subStageId);
     }
 
     public void OnDungeonSelectClicked(int index)
     {
         OnDungeonSelected(index);
+    }
+
+    public void OnLvSelectClicked(int index)
+    {
+        OnLevelSelected(index);
     }
 }

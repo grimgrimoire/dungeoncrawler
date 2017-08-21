@@ -2,7 +2,8 @@
   <Stages>
     <Stage Id="1" Name="Dark Forest" LvMin="1" LvMax="5">
       <SubStages>
-        <SubStage Id="Stage1_1" Name="Dark Forest Entrance" Lv="1"/>\
+        <SubStage Id="Stage1_1" Name="Dark Forest Entrance" Lv="1"/>
+        <SubStage Id="Stage1_2" Name="Dark Forest 1" Lv="2"/>
       </SubStages>
     </Stage>
     <Stage Id="2" Name="Vlad Mansion" LvMin="3" LvMax="7">
