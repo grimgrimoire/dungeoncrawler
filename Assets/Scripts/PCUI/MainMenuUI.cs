@@ -133,9 +133,9 @@ public class MainMenuUI : MonoBehaviour, CharCreationInterface, RecruitmentInter
 
     public void StartMockupBattle()
     {
-        //ShowDungeonSelectMenu();
-        InitializeBattleMembers();
-        SceneManager.LoadScene(1);
+        ShowDungeonSelectMenu();
+        //InitializeBattleMembers();
+        //SceneManager.LoadScene(1);
     }
 
     void InitializeBattleMembers()
