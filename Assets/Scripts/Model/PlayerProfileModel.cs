@@ -31,6 +31,9 @@ public class PlayerProfileModel
     [XmlIgnore]
     public List<int> itemsOwned;
 
+    [XmlIgnore]
+    public string currentDungeonId;
+
     public CharacterModel GetCharacter(int index)
     {
         if (index >= characters.Count || index < 0)

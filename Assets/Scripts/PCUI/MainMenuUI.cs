@@ -15,7 +15,7 @@ public interface ConfirmationDialogInterface
     void RequestConfirmationDialog(string text, UnityAction onYes, UnityAction onNo, UnityAction onCancel);
 }
 
-public class MainMenuUI : MonoBehaviour, CharCreationInterface, RecruitmentInterface, EquipmentUIInterface, EquipmentUILevelUpInterface, InventoryItemShowInterface, TooltipInterface, ConsumableInterface, ConfirmationDialogInterface, IPopupMenu, IPointerClickHandler
+public class MainMenuUI : MonoBehaviour, CharCreationInterface, RecruitmentInterface, EquipmentUIInterface, EquipmentUILevelUpInterface, InventoryItemShowInterface, TooltipInterface, ConfirmationDialogInterface, IPopupMenu, IPointerClickHandler
 {
     public DungeonSelectUI dungeonSelect;
     public CharCreationUI charCreate;

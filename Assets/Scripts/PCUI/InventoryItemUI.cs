@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
@@ -76,7 +73,7 @@ public class InventoryItemUI : MonoBehaviour, IPointerClickHandler, IPointerEnte
             {
                 selectedImpl.OnItemClicked(transform.GetSiblingIndex(), MouseInput.MOUSE_LEFT);
             }
-            else if(eventData.button == PointerEventData.InputButton.Right)
+            else if (eventData.button == PointerEventData.InputButton.Right)
             {
                 selectedImpl.OnItemClicked(transform.GetSiblingIndex(), MouseInput.MOUSE_RIGHT);
             }

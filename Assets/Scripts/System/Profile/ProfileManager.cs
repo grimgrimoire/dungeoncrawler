@@ -25,7 +25,7 @@ public class ProfileManager
     public void SaveProfile(PlayerProfileModel model)
     {
         XmlSaver.SaveXmlToFile<PlayerProfileModel>("/MainSave.xml", model);
-        //SaveProfileToFlat(model);
+        SaveProfileToFlat(model);
     }
 
     public PlayerProfileModel LoadProfile()
@@ -62,21 +62,26 @@ public class ProfileManager
         float start = Time.realtimeSinceStartup;
         List<Offset<CharacterModelFlat>> charList = new List<Offset<CharacterModelFlat>>();
         FlatBufferBuilder fbb = new FlatBufferBuilder(1);
-        StringOffset item = fbb.CreateString(prof.itemString);
         foreach (CharacterModel model in prof.characters)
         {
             charList.Add(AddCharacterToFlat(fbb, model));
         }
         VectorOffset charVector = fbb.CreateVectorOfTables<CharacterModelFlat>(charList.ToArray());
+        CreatePlayerProfileFlat(fbb, prof, charVector);
+        MemoryStream ms = new MemoryStream(fbb.DataBuffer.Data, fbb.DataBuffer.Position, fbb.Offset);
+        File.WriteAllBytes(XmlSaver.PersistentDataPath() + "/SAVEDATA", ms.ToArray());
+        Debug.Log("Flat Saving time  " + (Time.realtimeSinceStartup - start));
+    }
+
+    void CreatePlayerProfileFlat(FlatBufferBuilder fbb, PlayerProfileModel prof, VectorOffset charVector)
+    {
+        StringOffset item = fbb.CreateString(prof.itemString);
         PlayerProfileFlat.StartPlayerProfileFlat(fbb);
         PlayerProfileFlat.AddGold(fbb, prof.Gold);
         PlayerProfileFlat.AddItems(fbb, item);
         PlayerProfileFlat.AddCharacters(fbb, charVector);
         Offset<PlayerProfileFlat> offset = PlayerProfileFlat.EndPlayerProfileFlat(fbb);
         PlayerProfileFlat.FinishPlayerProfileFlatBuffer(fbb, offset);
-        MemoryStream ms = new MemoryStream(fbb.DataBuffer.Data, fbb.DataBuffer.Position, fbb.Offset);
-        File.WriteAllBytes(XmlSaver.PersistentDataPath() + "/SAVEDATA", ms.ToArray());
-        Debug.Log("Flat Saving time  " + (Time.realtimeSinceStartup - start));
     }
 
     Offset<CharacterModelFlat> AddCharacterToFlat(FlatBufferBuilder fbb, CharacterModel model)

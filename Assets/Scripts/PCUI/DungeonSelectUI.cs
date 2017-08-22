@@ -2,6 +2,7 @@
 using UnityEngine.UI;
 using System.Collections.Generic;
 using System;
+using UnityEngine.SceneManagement;
 
 public class DungeonSelectUI : MonoBehaviour, IDungeonSelect, ILevelSelect
 {
@@ -128,7 +129,8 @@ public class DungeonSelectUI : MonoBehaviour, IDungeonSelect, ILevelSelect
 
     public void OnLevelSelected(int index)
     {
-        Debug.Log(DungeonSelectManager.GetInstance().GetStageLevels(selectedDungeonIndex)[index].subStageId);
+        PlayerSession.GetProfile().currentDungeonId = DungeonSelectManager.GetInstance().GetStageLevels(selectedDungeonIndex)[index].subStageId;
+        SceneManager.LoadScene(1);
     }
 
     public void OnDungeonSelectClicked(int index)

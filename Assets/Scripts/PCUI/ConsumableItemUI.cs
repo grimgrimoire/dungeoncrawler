@@ -4,10 +4,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public interface ConsumableInterface
-{
-}
-
 public class ConsumableItemUI : MonoBehaviour, ConsumableItemInterface, CharListInterface
 {
     public const int FILTER_ALL = 0;

@@ -73,11 +73,6 @@ public class RecruitmentManager : MonoBehaviour
         GenerateSkillBook();
     }
 
-    void NewVehicle(int x)
-    {
-        Debug.Log("My New Vehicle speed " + x);
-    }
-
     void GeneratePotion()
     {
         PlayerSession.GetProfile().AddItem("OldPot", 1);
